@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0">
+  <channel>
+    <title>Example Tech</title>
+    <link>https://example.com</link>
+    <description>Example feed</description>
+    <item>
+      <title>New LLM beats benchmarks in machine learning test</title>
+      <link>https://example.com/llm-benchmarks?utm_source=rss</link>
+      <description>&lt;p&gt;A new &lt;b&gt;LLM&lt;/b&gt; was released today.&lt;/p&gt;</description>
+      <pubDate>Mon, 28 Sep 2026 06:00:00 GMT</pubDate>
+    </item>
+    <item>
+      <title>SpaceX schedules next rocket launch</title>
+      <link>https://example.com/spacex</link>
+      <description>The launch window opens Friday.</description>
+      <pubDate>Mon, 28 Sep 2026 04:00:00 GMT</pubDate>
+    </item>
+    <item>
+      <title>Local bakery wins award</title>
+      <link>https://example.com/bakery</link>
+      <description>Bread news.</description>
+      <pubDate>Mon, 28 Sep 2026 03:00:00 GMT</pubDate>
+    </item>
+    <item>
+      <title>Very old machine learning story</title>
+      <link>https://example.com/old</link>
+      <description>From last month.</description>
+      <pubDate>Fri, 28 Aug 2026 03:00:00 GMT</pubDate>
+    </item>
+  </channel>
+</rss>

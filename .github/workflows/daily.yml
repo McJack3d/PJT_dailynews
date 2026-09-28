@@ -1,0 +1,72 @@
+name: Daily issue
+
+on:
+  schedule:
+    # 05:17 UTC every day. GitHub cron runs in UTC and often starts 5-30 min late,
+    # so schedule about an hour before you want to read. Avoid minute 0 (busiest).
+    - cron: "17 5 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write # commit state/seen.json (dedup + keeps the schedule alive)
+
+concurrency:
+  group: daily-issue
+  cancel-in-progress: false
+
+jobs:
+  deliver:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Check setup
+        id: setup
+        env:
+          KINDLE_EMAIL: ${{ secrets.KINDLE_EMAIL }}
+        run: |
+          if [ -z "$KINDLE_EMAIL" ]; then
+            echo "::notice::KINDLE_EMAIL secret not set; skipping. See docs/SETUP.md."
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "ready=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - uses: actions/checkout@v4
+        if: steps.setup.outputs.ready == 'true'
+
+      - uses: actions/setup-python@v5
+        if: steps.setup.outputs.ready == 'true'
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install
+        if: steps.setup.outputs.ready == 'true'
+        run: pip install .
+
+      - name: Build and send
+        if: steps.setup.outputs.ready == 'true'
+        env:
+          KINDLE_EMAIL: ${{ secrets.KINDLE_EMAIL }}
+          SENDER_EMAIL: ${{ secrets.SENDER_EMAIL }}
+          SMTP_HOST: ${{ secrets.SMTP_HOST }}
+          SMTP_PORT: ${{ secrets.SMTP_PORT }}
+          SMTP_USER: ${{ secrets.SMTP_USER }}
+          SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
+          BCC_EMAIL: ${{ secrets.BCC_EMAIL }}
+        run: python -m dailynews run
+
+      # The issue itself is never uploaded or committed: artifacts on public repos are
+      # downloadable by anyone, and the articles belong to their publishers.
+      - name: Save delivery state
+        if: steps.setup.outputs.ready == 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add state/seen.json
+          if git diff --cached --quiet; then
+            echo "No state change"
+          else
+            git commit -m "Update delivery state $(date -u +%F)"
+            git push
+          fi

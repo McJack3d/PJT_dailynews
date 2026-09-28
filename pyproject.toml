@@ -1,0 +1,36 @@
+[project]
+name = "dailynews"
+version = "0.1.0"
+description = "A personal daily newspaper from your interests, delivered to your Kindle every morning."
+readme = "README.md"
+license = "MIT"
+requires-python = ">=3.11"
+dependencies = [
+    "ebooklib>=0.18",
+    "feedparser>=6.0",
+    "httpx>=0.27",
+    "lxml>=5.0",
+    "pydantic>=2.6",
+    "pyyaml>=6.0",
+    "trafilatura>=1.12",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8", "ruff>=0.5"]
+
+[project.scripts]
+dailynews = "dailynews.__main__:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

@@ -1,0 +1,31 @@
+# dailynews configuration. Edit this file directly on GitHub to change your paper.
+# Secrets (Kindle address, SMTP password) do NOT go here: they are GitHub Actions secrets.
+# Delivery time is set in .github/workflows/daily.yml (cron, UTC).
+
+title: Daily News
+language: en          # language of the issue (EPUB metadata)
+market: en-US         # news search region, e.g. en-GB, fr-FR, de-DE
+
+max_articles: 25      # whole issue
+max_per_section: 6    # per interest
+max_age_hours: 36     # ignore older items
+min_words: 150        # shorter extractions fall back to the summary + link
+
+# Each interest becomes a section. Articles are matched on these keywords and,
+# unless `discover: false`, a news search feed is created for the interest.
+interests:
+  - name: Artificial intelligence
+    keywords: [artificial intelligence, AI model, LLM, machine learning]
+  - name: Space
+    keywords: [NASA, SpaceX, ESA, rocket launch, astronomy]
+  - name: Climate
+    keywords: [climate change, renewable energy, emissions]
+    search: climate change news   # optional: custom search query
+
+# Optional hand-picked RSS/Atom feeds. Their items are matched against the interests
+# above. Use include_all to take every recent item from a feed regardless.
+feeds:
+  - https://hnrss.org/frontpage?points=200
+  - url: https://feeds.bbci.co.uk/news/world/rss.xml
+    name: BBC World
+    include_all: false
