@@ -1,31 +1,164 @@
 # dailynews configuration. Edit this file directly on GitHub to change your paper.
 # Secrets (Kindle address, SMTP password) do NOT go here: they are GitHub Actions secrets.
 # Delivery time is set in .github/workflows/daily.yml (cron, UTC).
+#
+# Keywords are matched case- and accent-insensitively ("réacteur" == "reacteur"),
+# on whole words, against the title, summary and article text.
 
-title: Daily News
-language: en          # language of the issue (EPUB metadata)
-market: en-US         # news search region, e.g. en-GB, fr-FR, de-DE
+title: Le Quotidien
+language: fr          # language of the issue (EPUB metadata)
+market: fr-FR         # French-language Google News search, France edition
 
-max_articles: 25      # whole issue
-max_per_section: 6    # per interest
-max_age_hours: 36     # ignore older items
-min_words: 150        # shorter extractions fall back to the summary + link
+max_articles: 22      # whole issue (~45-60 min of reading)
+max_per_section: 8    # per interest
+max_age_hours: 30     # ignore older items
+min_words: 200        # shorter extractions fall back to the summary + link
 
-# Each interest becomes a section. Articles are matched on these keywords and,
-# unless `discover: false`, a news search feed is created for the interest.
+# Sections appear in this order. Each gets a Google News search (the `search` query)
+# plus any matching items from the RSS feeds below.
 interests:
-  - name: Artificial intelligence
-    keywords: [artificial intelligence, AI model, LLM, machine learning]
-  - name: Space
-    keywords: [NASA, SpaceX, ESA, rocket launch, astronomy]
-  - name: Climate
-    keywords: [climate change, renewable energy, emissions]
-    search: climate change news   # optional: custom search query
+  - name: Intelligence artificielle
+    search: '"intelligence artificielle" OR "IA générative" OR LLM OR OpenAI OR Anthropic OR "Mistral AI" OR "modèle de langage"'
+    keywords:
+      - intelligence artificielle
+      - IA
+      - IA générative
+      - LLM
+      - modèle de langage
+      - grand modèle de langage
+      - apprentissage automatique
+      - deep learning
+      - réseau de neurones
+      - agent IA
+      - agents IA
+      - OpenAI
+      - ChatGPT
+      - Anthropic
+      - Claude
+      - Mistral AI
+      - Google DeepMind
+      - Gemini
+      - Meta AI
+      - Llama
+      - Nvidia
+      - GPU
+      - AI Act
+      - datacenter
+      - data center
+      - centre de données
 
-# Optional hand-picked RSS/Atom feeds. Their items are matched against the interests
-# above. Use include_all to take every recent item from a feed regardless.
+  - name: Énergie & nucléaire (SMR)
+    search: '"petit réacteur modulaire" OR "petits réacteurs modulaires" OR "SMR nucléaire" OR "réacteur nucléaire" OR EPR2 OR "centrale nucléaire" OR "fusion nucléaire" OR "filière nucléaire"'
+    keywords:
+      - SMR
+      - petit réacteur modulaire
+      - petits réacteurs modulaires
+      - réacteur modulaire
+      - AMR
+      - réacteur nucléaire
+      - réacteurs nucléaires
+      - nucléaire
+      - centrale nucléaire
+      - EPR
+      - EPR2
+      - Flamanville
+      - EDF
+      - Nuward
+      - Framatome
+      - Orano
+      - CEA
+      - Newcleo
+      - Jimmy Energy
+      - Calogena
+      - Blue Capsule
+      - Stellaria
+      - Hexana
+      - Thorizon
+      - NuScale
+      - Rolls-Royce SMR
+      - GE Hitachi
+      - BWRX-300
+      - TerraPower
+      - Kairos Power
+      - Oklo
+      - X-energy
+      - fusion nucléaire
+      - ITER
+      - uranium
+      - combustible nucléaire
+      - AIEA
+      - ASNR
+      - France 2030
+      - mix énergétique
+      - réseau électrique
+      - prix de l'électricité
+      - RTE
+
+  - name: Géopolitique
+    # No Google News search here: it pulls in minor and fringe outlets. Only the
+    # international desks below (Le Monde, Courrier International, France 24) feed it.
+    discover: false
+    keywords:
+      - géopolitique
+      - guerre
+      - cessez-le-feu
+      - Ukraine
+      - Russie
+      - Kremlin
+      - Poutine
+      - Chine
+      - Pékin
+      - Xi Jinping
+      - Taïwan
+      - OTAN
+      - Union européenne
+      - Commission européenne
+      - Maison Blanche
+      - Iran
+      - Israël
+      - Gaza
+      - Moyen-Orient
+      - Conseil de sécurité
+      - ONU
+      - G7
+      - G20
+      - sanctions contre
+      - droits de douane
+      - dissuasion nucléaire
+      - sommet de l'OTAN
+      - sommet du G7
+
+# Hand-picked RSS feeds. Their items are only kept when they match a section above.
 feeds:
-  - https://hnrss.org/frontpage?points=200
-  - url: https://feeds.bbci.co.uk/news/world/rss.xml
-    name: BBC World
-    include_all: false
+  # IA / tech, accessible but technical
+  - url: https://www.usine-digitale.fr/rss
+    name: L'Usine Digitale
+  - url: https://www.actuia.com/feed/
+    name: ActuIA
+  - url: https://www.numerama.com/feed/
+    name: Numerama
+  - url: https://www.lemonde.fr/pixels/rss_full.xml
+    name: Le Monde Pixels
+
+  # Énergie & nucléaire
+  - url: https://www.sfen.org/feed/
+    name: SFEN
+  - url: https://www.revolution-energetique.com/feed/
+    name: Révolution Énergétique
+  - url: https://www.connaissancedesenergies.org/rss.xml
+    name: Connaissance des Énergies
+  - url: https://www.lemonde.fr/energies/rss_full.xml
+    name: Le Monde Énergies
+  - url: https://www.usinenouvelle.com/rss/
+    name: L'Usine Nouvelle
+  # English, but the best daily SMR coverage. Uncomment if you accept some English.
+  # - url: https://www.world-nuclear-news.org/rss
+  #   name: World Nuclear News
+
+  # Géopolitique
+  - url: https://www.lemonde.fr/international/rss_full.xml
+    name: Le Monde International
+  - url: https://www.courrierinternational.com/feed/all/rss.xml
+    name: Courrier International
+  - url: https://www.france24.com/fr/rss
+    name: France 24

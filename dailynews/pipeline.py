@@ -29,7 +29,12 @@ def build_issue(
     unique = dedupe(fresh)
     log.info("Collected %d items, %d recent+unsent, %d unique", len(raw), len(fresh), len(unique))
 
-    candidates = rank(unique, cfg, now)[: cfg.max_articles * CANDIDATE_FACTOR]
+    # Cap per section so a busy section can't crowd a quieter one out of extraction.
+    candidates, per_section = [], {}
+    for a in rank(unique, cfg, now):
+        if per_section.get(a.section, 0) < cfg.max_per_section * CANDIDATE_FACTOR:
+            per_section[a.section] = per_section.get(a.section, 0) + 1
+            candidates.append(a)
     log.info("Extracting full text for %d candidates", len(candidates))
     extracted = extract_all(candidates)
 

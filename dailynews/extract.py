@@ -140,7 +140,13 @@ def extract_one(client: httpx.Client, robots: RobotsCache, article: Article) -> 
 def extract_all(articles: list[Article]) -> list[Article]:
     headers = {"User-Agent": USER_AGENT, "Accept": "text/html,application/xhtml+xml"}
     timeout = httpx.Timeout(20.0)
-    with httpx.Client(headers=headers, timeout=timeout, follow_redirects=True) as client:
+    # From EU IPs Google redirects news.google.com to a consent page, which breaks
+    # link resolution. This cookie records "reject all" and is only sent to Google.
+    cookies = httpx.Cookies()
+    cookies.set("SOCS", "CAI", domain=".google.com")
+    with httpx.Client(
+        headers=headers, cookies=cookies, timeout=timeout, follow_redirects=True
+    ) as client:
         robots = RobotsCache(client)
         with ThreadPoolExecutor(max_workers=8) as pool:
             return list(pool.map(lambda a: extract_one(client, robots, a), articles))
