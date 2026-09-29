@@ -6,6 +6,7 @@ import calendar
 import json
 import logging
 import math
+import re
 from collections.abc import Iterable
 from concurrent.futures import ThreadPoolExecutor
 from datetime import UTC, datetime, timedelta
@@ -96,7 +97,8 @@ def parse_feed(
     articles = []
     for entry in parsed.entries:
         link = entry.get("link")
-        title = strip_html(entry.get("title", ""))
+        # Some CMSs leak a leading "/thumbnail texte:"-style token into the title.
+        title = re.sub(r"^/[^:]{0,40}:\s*", "", strip_html(entry.get("title", "")))
         if not link or not title:
             continue
         summary = strip_html(entry.get("summary", ""))
@@ -110,7 +112,8 @@ def parse_feed(
             Article(
                 url=link,
                 title=title,
-                source=source or default_source or urlparse(link).hostname or "",
+                # A name you gave the feed wins: some feeds put photo credits in <source>.
+                source=feed_name or source or default_source or urlparse(link).hostname or "",
                 published=_entry_time(entry),
                 summary=summary,
                 origin_interest=origin_interest,

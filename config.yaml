@@ -8,6 +8,7 @@
 title: Le Quotidien
 language: fr          # language of the issue (EPUB metadata)
 market: fr-FR         # French-language Google News search, France edition
+timezone: Europe/Paris  # issue date and article times
 
 max_articles: 22      # whole issue (~45-60 min of reading)
 max_per_section: 8    # per interest

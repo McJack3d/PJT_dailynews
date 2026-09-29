@@ -28,3 +28,11 @@ def test_trafilatura_extracts_article_body():
     words = count_words(body)
     assert words > 150
     assert "Privacy" not in body and "track()" not in body
+
+
+def test_drop_repeated_title():
+    from dailynews.extract import drop_repeated_title
+
+    body = "<h3>Les agents IA dérapent encore</h3><p>Texte.</p>"
+    assert drop_repeated_title(body, "Les agents IA dérapent encore - Clubic") == "<p>Texte.</p>"
+    assert drop_repeated_title(body, "Autre chose entièrement") == body

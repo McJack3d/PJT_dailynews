@@ -8,6 +8,7 @@ import os
 import sys
 from datetime import UTC, datetime
 from pathlib import Path
+from zoneinfo import ZoneInfo
 
 from .config import Secrets, load_config
 from .deliver import send
@@ -29,6 +30,11 @@ def cmd_run(args, send_it: bool) -> int:
     secrets = Secrets.from_env() if send_it else None  # fail fast before any fetching
     seen = SeenStore(args.state)
     now = datetime.now(UTC)
+    if getattr(args, "once_per_day", False) and seen.updated:
+        tz = ZoneInfo(cfg.timezone)
+        if seen.updated.astimezone(tz).date() == now.astimezone(tz).date():
+            logging.info("Today's issue was already sent at %s; skipping.", seen.updated)
+            return 0
     epub_path, articles = build_issue(cfg, seen, args.out, now)
     _write_step_summary(summary_markdown(articles, epub_path))
     if not epub_path:
@@ -76,7 +82,12 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--out", default="out")
     parser.add_argument("-v", "--verbose", action="store_true")
     sub = parser.add_subparsers(dest="command", required=True)
-    sub.add_parser("run", help="build today's issue and email it to your Kindle")
+    run = sub.add_parser("run", help="build today's issue and email it to your Kindle")
+    run.add_argument(
+        "--once-per-day",
+        action="store_true",
+        help="skip if an issue was already sent today (for backup schedules)",
+    )
     sub.add_parser("preview", help="build today's issue locally without sending")
     sub.add_parser("test-email", help="send a one-page test issue to check delivery")
     args = parser.parse_args(argv)

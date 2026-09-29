@@ -24,9 +24,13 @@ class SeenStore:
     def __init__(self, path: str | Path):
         self.path = Path(path)
         self.entries: dict[str, str] = {}
+        # When an issue was last delivered, used to avoid sending twice on the same day.
+        self.updated: datetime | None = None
         if self.path.exists():
             data = json.loads(self.path.read_text(encoding="utf-8") or "{}")
             self.entries = data.get("seen", {})
+            if data.get("updated"):
+                self.updated = datetime.fromisoformat(data["updated"])
 
     def __contains__(self, url: str) -> bool:
         return url_hash(url) in self.entries

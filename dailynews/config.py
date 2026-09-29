@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import os
 from pathlib import Path
+from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 import yaml
 from pydantic import BaseModel, Field, field_validator
@@ -44,12 +45,23 @@ class Config(BaseModel):
     language: str = "en"
     # Region/market for news search, e.g. en-US, en-GB, fr-FR.
     market: str = "en-US"
+    # IANA time zone for the issue date and article times, e.g. Europe/Paris.
+    timezone: str = "UTC"
     max_articles: int = Field(25, ge=1, le=200)
     max_per_section: int = Field(8, ge=1, le=100)
     max_age_hours: int = Field(36, ge=1)
     min_words: int = Field(150, ge=0)
     interests: list[Interest] = Field(default_factory=list)
     feeds: list[Feed] = Field(default_factory=list)
+
+    @field_validator("timezone")
+    @classmethod
+    def _known_zone(cls, v: str) -> str:
+        try:
+            ZoneInfo(v)
+        except (ZoneInfoNotFoundError, ValueError) as e:
+            raise ValueError(f"Unknown time zone {v!r}, use e.g. Europe/Paris") from e
+        return v
 
     @field_validator("feeds", mode="before")
     @classmethod

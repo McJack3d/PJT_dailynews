@@ -2,9 +2,13 @@ name: Daily issue
 
 on:
   schedule:
-    # 05:17 UTC every day. GitHub cron runs in UTC and often starts 5-30 min late,
-    # so schedule about an hour before you want to read. Avoid minute 0 (busiest).
-    - cron: "17 5 * * *"
+    # GitHub cron runs in UTC, often starts 5-30 min late, and sometimes drops runs
+    # entirely. So there are three tries an hour apart; `--once-per-day` makes the later
+    # ones exit immediately once an issue has gone out. 04:37 UTC is 06:37 in Paris in
+    # summer, 05:37 in winter. Avoid minute 0 (busiest).
+    - cron: "37 4 * * *"
+    - cron: "37 5 * * *"
+    - cron: "37 6 * * *"
   workflow_dispatch:
 
 permissions:
@@ -54,7 +58,8 @@ jobs:
           SMTP_USER: ${{ secrets.SMTP_USER }}
           SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
           BCC_EMAIL: ${{ secrets.BCC_EMAIL }}
-        run: python -m dailynews run
+        # Manual runs always send; scheduled ones send at most once a day.
+        run: python -m dailynews run ${{ github.event_name == 'schedule' && '--once-per-day' || '' }}
 
       # The issue itself is never uploaded or committed: artifacts on public repos are
       # downloadable by anyone, and the articles belong to their publishers.

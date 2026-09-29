@@ -16,6 +16,7 @@ from lxml import html as lxml_html
 
 from . import USER_AGENT
 from .models import Article
+from .rank import title_key
 from .sources import is_google_news, resolve_google_news
 
 log = logging.getLogger(__name__)
@@ -56,6 +57,21 @@ def sanitize_html(fragment: str) -> str:
     if lead:
         out = f"<p>{_escape(lead)}</p>" + out
     return out
+
+
+def drop_repeated_title(fragment: str, title: str) -> str:
+    """Pages often restate the headline as the first line of the body; the issue already
+    prints it, so drop that first block when it matches the title."""
+    if not fragment:
+        return fragment
+    root = lxml_html.fragment_fromstring(fragment, create_parent="div")
+    first = root[0] if len(root) else None
+    if first is not None and not (root.text or "").strip():
+        head, want = title_key(first.text_content()), title_key(title)
+        if head and len(head.split()) >= 3 and (head == want or head in want or want in head):
+            root.remove(first)
+            return "".join(etree.tostring(c, method="xml", encoding="unicode") for c in root)
+    return fragment
 
 
 def _escape(text: str) -> str:
@@ -127,7 +143,7 @@ def extract_one(client: httpx.Client, robots: RobotsCache, article: Article) -> 
                     include_tables=True,
                     favor_precision=True,
                 )
-                body = sanitize_html(extracted or "")
+                body = drop_repeated_title(sanitize_html(extracted or ""), article.title)
         except Exception as e:  # one broken page must never sink the whole issue
             log.info("Extraction failed for %s: %s", article.url, _first_line(e))
     else:

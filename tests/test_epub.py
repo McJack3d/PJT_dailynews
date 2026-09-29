@@ -49,7 +49,10 @@ def test_build_epub_structure(tmp_path):
         paywalled = z.read("EPUB/a002.xhtml").decode()
         assert "Only the summary is available." in paywalled
         opf = z.read("EPUB/content.opf").decode()
-        assert "Test Daily — Mon 28 Sep 2026" in opf
+        assert "Test Daily — Monday 28 September 2026" in opf
+        assert 'properties="cover-image"' in opf
+        cover = z.read("EPUB/cover.jpg")
+        assert cover[:3] == b"\xff\xd8\xff"  # JPEG
 
 
 @pytest.mark.skipif(not os.environ.get("EPUBCHECK_JAR"), reason="EPUBCHECK_JAR not set")
@@ -61,3 +64,21 @@ def test_epubcheck_passes(tmp_path):
         ["java", "-jar", os.environ["EPUBCHECK_JAR"], str(path)], capture_output=True, text=True
     )
     assert result.returncode == 0, result.stdout + result.stderr
+
+
+def test_build_epub_french(tmp_path):
+    path = build_epub(
+        sample_articles(),
+        title="Le Quotidien",
+        language="fr",
+        date=NOW,
+        out_path=tmp_path / "fr.epub",
+        timezone="Europe/Paris",
+    )
+    with zipfile.ZipFile(path) as z:
+        front = z.read("EPUB/front.xhtml").decode()
+        assert "lundi 28 septembre 2026" in front
+        assert "Sommaire" in z.read("EPUB/nav.xhtml").decode()
+        article = z.read("EPUB/a001.xhtml").decode()
+        assert "28 sept., 10:00" in article  # 08:00 UTC shown in Paris time
+        assert "2 min de lecture" in article

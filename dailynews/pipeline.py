@@ -59,7 +59,14 @@ def build_issue(
         return None, []
 
     out = Path(out_dir) / f"dailynews-{now:%Y-%m-%d}.epub"
-    build_epub(chosen, title=cfg.title, language=cfg.language, date=now, out_path=out)
+    build_epub(
+        chosen,
+        title=cfg.title,
+        language=cfg.language,
+        date=now,
+        out_path=out,
+        timezone=cfg.timezone,
+    )
     full = sum(1 for a in chosen if a.body_html)
     log.info("Built %s: %d articles (%d full text)", out, len(chosen), full)
     return out, chosen

@@ -23,3 +23,16 @@ def test_roundtrip_and_prune(tmp_path):
 
 def test_missing_file_is_empty(tmp_path):
     assert "https://x.com" not in SeenStore(tmp_path / "nope.json")
+
+
+def test_updated_roundtrip(tmp_path):
+    from datetime import UTC, datetime
+
+    from dailynews.state import SeenStore
+
+    path = tmp_path / "seen.json"
+    assert SeenStore(path).updated is None
+    now = datetime(2026, 9, 29, 4, 40, tzinfo=UTC)
+    store = SeenStore(path)
+    store.save(now)
+    assert SeenStore(path).updated == now

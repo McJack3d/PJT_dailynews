@@ -67,7 +67,7 @@ pytest                               # tests (set EPUBCHECK_JAR to also validate
 ## Roadmap
 
 See [PLAN.md](PLAN.md). Next: an optional AI front-page briefing and smarter ranking,
-a generated cover, and images.
+and images.
 
 ## License
 
