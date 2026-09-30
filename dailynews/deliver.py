@@ -7,6 +7,7 @@ import smtplib
 import ssl
 import time
 from email.message import EmailMessage
+from email.utils import formatdate, make_msgid
 from pathlib import Path
 
 from .config import Secrets
@@ -23,6 +24,9 @@ def build_message(epub_path: Path, secrets: Secrets, subject: str) -> EmailMessa
     if secrets.bcc:
         msg["Bcc"] = secrets.bcc
     msg["Subject"] = subject
+    # smtplib adds neither header, and Send to Kindle silently drops mail without them.
+    msg["Date"] = formatdate(localtime=False)
+    msg["Message-ID"] = make_msgid(domain=secrets.sender_email.rpartition("@")[2] or None)
     msg.set_content("Your daily issue is attached. Sent automatically by dailynews.\n")
     msg.add_attachment(
         epub_path.read_bytes(),

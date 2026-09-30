@@ -73,5 +73,6 @@ jobs:
             echo "No state change"
           else
             git commit -m "Update delivery state $(date -u +%F)"
+            git pull --rebase --quiet  # another run may have pushed state meanwhile
             git push
           fi
