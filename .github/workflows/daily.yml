@@ -68,11 +68,11 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git pull --rebase --quiet  # sync first in case state changed remotely
           git add state/seen.json
           if git diff --cached --quiet; then
             echo "No state change"
           else
             git commit -m "Update delivery state $(date -u +%F)"
-            git pull --rebase --quiet  # another run may have pushed state meanwhile
-            git push
+            git push || (git pull --rebase --quiet && git push)
           fi
